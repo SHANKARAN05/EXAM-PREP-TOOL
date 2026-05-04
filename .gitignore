@@ -56,3 +56,4 @@ htmlcov/
 # Temporary files
 *.tmp
 .kiro_tmp/
+config.py
