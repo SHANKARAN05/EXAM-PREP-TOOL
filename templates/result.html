@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Exam Result - Placement Prep{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Result Card -->
+            <div class="card shadow-lg">
+                <div class="card-header text-center {% if percentage >= 70 %}bg-success{% elif percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %} text-white">
+                    <h2><i class="bi bi-trophy-fill"></i> Exam Result</h2>
+                </div>
+                <div class="card-body text-center">
+                    <h3 class="mb-3">{{ session.student_name }}</h3>
+                    <h4 class="text-muted mb-4">{{ session.subject }}</h4>
+                    
+                    <!-- Score Display -->
+                    <div class="score-display mb-4">
+                        <div class="score-circle {% if percentage >= 70 %}score-pass{% elif percentage >= 50 %}score-average{% else %}score-fail{% endif %}">
+                            <div class="score-value">{{ session.score }}/{{ session.total }}</div>
+                            <div class="score-percentage">{{ percentage|int }}%</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance Message -->
+                    <div class="alert {% if percentage >= 70 %}alert-success{% elif percentage >= 50 %}alert-warning{% else %}alert-danger{% endif %}">
+                        {% if percentage >= 70 %}
+                            <i class="bi bi-emoji-smile-fill"></i> <strong>Excellent!</strong> You have a strong understanding of the subject.
+                        {% elif percentage >= 50 %}
+                            <i class="bi bi-emoji-neutral-fill"></i> <strong>Good effort!</strong> Keep practicing to improve your score.
+                        {% else %}
+                            <i class="bi bi-emoji-frown-fill"></i> <strong>Keep learning!</strong> Review the topics and try again.
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Subject Breakdown for Combined Exam -->
+                    {% if session.subject == 'Combined' and subject_breakdown %}
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-bar-chart-fill"></i> Subject-wise Breakdown</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for subject_name, scores in subject_breakdown.items() %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="subject-score">
+                                        <h6>{{ subject_name }}</h6>
+                                        <div class="progress" style="height: 25px;">
+                                            <div class="progress-bar {% if (scores.correct / scores.total * 100) >= 70 %}bg-success{% elif (scores.correct / scores.total * 100) >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                 style="width: {{ (scores.correct / scores.total * 100)|int }}%">
+                                                {{ scores.correct }}/{{ scores.total }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Exam Details -->
+                    <div class="row mt-4 text-start">
+                        <div class="col-md-6">
+                            <p><strong><i class="bi bi-calendar-check"></i> Date:</strong> {{ session.timestamp.strftime('%B %d, %Y') }}</p>
+                            <p><strong><i class="bi bi-clock"></i> Time:</strong> {{ session.timestamp.strftime('%I:%M %p') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="bi bi-check-circle"></i> Correct:</strong> {{ session.score }}</p>
+                            <p><strong><i class="bi bi-x-circle"></i> Wrong:</strong> {{ session.total - session.score }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{{ url_for('results.review_answers', session_id=session.id) }}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-eye-fill"></i> Review Answers
+                        </a>
+                        <a href="{{ url_for('exam.exam_setup', subject=session.subject) }}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-repeat"></i> Retake Exam
+                        </a>
+                        <a href="{{ url_for('home.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-house-fill"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

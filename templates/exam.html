@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Exam - {{ subject }} - Placement Prep{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if is_setup %}
+    <!-- Exam Setup Page -->
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header text-center bg-primary text-white">
+                    <h3><i class="bi bi-pencil-square"></i> Start {{ subject }} Exam</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('exam.start_exam', subject=subject) }}">
+                        <div class="mb-3">
+                            <label for="student_name" class="form-label">Your Name</label>
+                            <input type="text" class="form-control" id="student_name" name="student_name" required placeholder="Enter your name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="question_count" class="form-label">Number of Questions</label>
+                            <select class="form-select" id="question_count" name="question_count" required>
+                                <option value="10">10 Questions (10 minutes)</option>
+                                <option value="20" selected>20 Questions (20 minutes)</option>
+                                <option value="30">30 Questions (30 minutes)</option>
+                            </select>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> <strong>Instructions:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>You will have 1 minute per question</li>
+                                <li>Questions will be randomly selected</li>
+                                <li>You can navigate between questions</li>
+                                <li>Exam will auto-submit when time runs out</li>
+                            </ul>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-play-fill"></i> Start Exam
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Exam Taking Page -->
+    <div class="exam-container">
+        <!-- Timer and Progress -->
+        <div class="card mb-3 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <h5 class="mb-0">
+                            <span class="badge bg-secondary">{{ subject }}</span>
+                            {% if question.subject %}
+                            <span class="badge bg-info">{{ question.subject.name }}</span>
+                            {% endif %}
+                        </h5>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar" role="progressbar" style="width: {{ ((current_index + 1) / total_questions * 100)|int }}%">
+                                Question {{ current_index + 1 }} of {{ total_questions }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <h4 class="mb-0">
+                            <span class="badge bg-danger" id="timer">
+                                <i class="bi bi-clock-fill"></i> <span id="timer-display">--:--</span>
+                            </span>
+                        </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="card shadow">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>
+                        <span class="badge bg-secondary">{{ question.question_type.upper() }}</span>
+                        <span class="badge bg-info">{{ question.topic }}</span>
+                    </span>
+                    <span class="text-muted">Question {{ current_index + 1 }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title mb-4">{{ question.question }}</h5>
+                
+                <form id="exam-form">
+                    <input type="hidden" id="question_id" value="{{ question.id }}">
+                    
+                    {% if question.question_type == 'mcq' %}
+                    <!-- MCQ Options -->
+                    <div class="options">
+                        <div class="form-check option-item">
+                            <input class="form-check-input" type="radio" name="answer" id="option_a" value="A" {% if selected_answer == 'A' %}checked{% endif %}>
+                            <label class="form-check-label" for="option_a">
+                                <strong>A)</strong> {{ question.option_a }}
+                            </label>
+                        </div>
+                        <div class="form-check option-item">
+                            <input class="form-check-input" type="radio" name="answer" id="option_b" value="B" {% if selected_answer == 'B' %}checked{% endif %}>
+                            <label class="form-check-label" for="option_b">
+                                <strong>B)</strong> {{ question.option_b }}
+                            </label>
+                        </div>
+                        <div class="form-check option-item">
+                            <input class="form-check-input" type="radio" name="answer" id="option_c" value="C" {% if selected_answer == 'C' %}checked{% endif %}>
+                            <label class="form-check-label" for="option_c">
+                                <strong>C)</strong> {{ question.option_c }}
+                            </label>
+                        </div>
+                        <div class="form-check option-item">
+                            <input class="form-check-input" type="radio" name="answer" id="option_d" value="D" {% if selected_answer == 'D' %}checked{% endif %}>
+                            <label class="form-check-label" for="option_d">
+                                <strong>D)</strong> {{ question.option_d }}
+                            </label>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Text Answer for Theory/Output/Coding -->
+                    <div class="mb-3">
+                        <label for="answer_text" class="form-label">Your Answer:</label>
+                        <textarea class="form-control" id="answer_text" name="answer" rows="8" placeholder="Type your answer here...">{{ selected_answer }}</textarea>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-secondary" id="prev-btn" {% if current_index == 0 %}disabled{% endif %}>
+                        <i class="bi bi-arrow-left"></i> Previous
+                    </button>
+                    <button class="btn btn-primary" id="next-btn">
+                        {% if current_index + 1 == total_questions %}
+                            <i class="bi bi-check-circle"></i> Submit Exam
+                        {% else %}
+                            Next <i class="bi bi-arrow-right"></i>
+                        {% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if not is_setup %}
+<script src="{{ url_for('static', filename='js/exam.js') }}"></script>
+<script>
+    // Initialize exam timer
+    const timeLimit = {{ time_limit }};
+    initExamTimer(timeLimit);
+</script>
+{% endif %}
+{% endblock %}

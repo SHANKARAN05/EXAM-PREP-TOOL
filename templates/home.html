@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Placement Prep{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold">
+            <i class="bi bi-mortarboard-fill"></i> Placement Training Application
+        </h1>
+        <p class="lead text-muted">Prepare for your placements with comprehensive study and exam modes</p>
+    </div>
+
+    <!-- Subject Cards -->
+    <div class="row g-4 mb-5">
+        {% for subject in subjects %}
+        <div class="col-md-4">
+            <div class="card subject-card subject-{{ subject.name.lower().replace(' ', '-') }} h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="subject-icon mb-3">
+                        {% if subject.name == 'Java' %}
+                            <i class="bi bi-code-slash"></i>
+                        {% elif subject.name == 'Networks' %}
+                            <i class="bi bi-diagram-3-fill"></i>
+                        {% else %}
+                            <i class="bi bi-cpu-fill"></i>
+                        {% endif %}
+                    </div>
+                    <h3 class="card-title">{{ subject.name }}</h3>
+                    <p class="card-text">
+                        <span class="badge bg-light text-dark fs-6">{{ subject.count }} Questions</span>
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('study.study_mode', subject=subject.name) }}" class="btn btn-outline-primary">
+                            <i class="bi bi-book"></i> Study Mode
+                        </a>
+                        <a href="{{ url_for('exam.exam_setup', subject=subject.name) }}" class="btn btn-primary">
+                            <i class="bi bi-pencil-square"></i> Take Exam
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Combined Exam Card -->
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card subject-card subject-combined h-100 shadow">
+                <div class="card-body text-center">
+                    <div class="subject-icon mb-3">
+                        <i class="bi bi-collection-fill"></i>
+                    </div>
+                    <h3 class="card-title">Combined Exam</h3>
+                    <p class="card-text text-muted">
+                        Test your knowledge across all three subjects in one comprehensive exam
+                    </p>
+                    <a href="{{ url_for('exam.exam_setup', subject='Combined') }}" class="btn btn-lg btn-combined">
+                        <i class="bi bi-lightning-fill"></i> Start Combined Exam
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mt-5">
+        <div class="col-md-4 text-center">
+            <div class="feature-box">
+                <i class="bi bi-book-half feature-icon text-primary"></i>
+                <h4>Study Mode</h4>
+                <p class="text-muted">Review questions with answers and explanations. Filter by topic and type.</p>
+            </div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="feature-box">
+                <i class="bi bi-clock-history feature-icon text-success"></i>
+                <h4>Timed Exams</h4>
+                <p class="text-muted">Practice with real exam conditions. 1 minute per question timer.</p>
+            </div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="feature-box">
+                <i class="bi bi-graph-up feature-icon text-warning"></i>
+                <h4>Track Progress</h4>
+                <p class="text-muted">Review your answers and identify areas for improvement.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

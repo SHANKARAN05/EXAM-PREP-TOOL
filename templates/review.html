@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Review Answers - Placement Prep{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-eye-fill"></i> Review Answers</h2>
+        <div>
+            <a href="{{ url_for('results.show_result', session_id=session.id) }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Result
+            </a>
+            <a href="{{ url_for('home.index') }}" class="btn btn-outline-primary">
+                <i class="bi bi-house-fill"></i> Home
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <h5>Student</h5>
+                    <p class="lead">{{ session.student_name }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Subject</h5>
+                    <p class="lead">{{ session.subject }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Score</h5>
+                    <p class="lead">{{ session.score }}/{{ session.total }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs for Correct/Wrong -->
+    <ul class="nav nav-tabs mb-3" id="reviewTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="wrong-tab" data-bs-toggle="tab" data-bs-target="#wrong" type="button">
+                <i class="bi bi-x-circle"></i> Wrong Answers ({{ wrong_answers|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="correct-tab" data-bs-toggle="tab" data-bs-target="#correct" type="button">
+                <i class="bi bi-check-circle"></i> Correct Answers ({{ correct_answers|length }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="reviewTabsContent">
+        <!-- Wrong Answers Tab -->
+        <div class="tab-pane fade show active" id="wrong" role="tabpanel">
+            {% if wrong_answers %}
+            {% for answer_data in wrong_answers %}
+            <div class="card mb-3 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-x-circle-fill"></i> Wrong Answer
+                        </span>
+                        <span>
+                            <span class="badge bg-light text-dark">{{ answer_data.question.question_type.upper() }}</span>
+                            <span class="badge bg-light text-dark">{{ answer_data.question.topic }}</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ answer_data.question.question }}</h5>
+                    
+                    {% if answer_data.question.question_type == 'mcq' %}
+                    <div class="options mt-3">
+                        <div class="option-item {% if answer_data.selected_answer == 'A' %}wrong-option{% endif %} {% if answer_data.question.answer == 'A' %}correct-option{% endif %}">
+                            <strong>A)</strong> {{ answer_data.question.option_a }}
+                            {% if answer_data.question.answer == 'A' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                            {% if answer_data.selected_answer == 'A' %}<i class="bi bi-x-circle-fill text-danger ms-2"></i>{% endif %}
+                        </div>
+                        <div class="option-item {% if answer_data.selected_answer == 'B' %}wrong-option{% endif %} {% if answer_data.question.answer == 'B' %}correct-option{% endif %}">
+                            <strong>B)</strong> {{ answer_data.question.option_b }}
+                            {% if answer_data.question.answer == 'B' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                            {% if answer_data.selected_answer == 'B' %}<i class="bi bi-x-circle-fill text-danger ms-2"></i>{% endif %}
+                        </div>
+                        <div class="option-item {% if answer_data.selected_answer == 'C' %}wrong-option{% endif %} {% if answer_data.question.answer == 'C' %}correct-option{% endif %}">
+                            <strong>C)</strong> {{ answer_data.question.option_c }}
+                            {% if answer_data.question.answer == 'C' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                            {% if answer_data.selected_answer == 'C' %}<i class="bi bi-x-circle-fill text-danger ms-2"></i>{% endif %}
+                        </div>
+                        <div class="option-item {% if answer_data.selected_answer == 'D' %}wrong-option{% endif %} {% if answer_data.question.answer == 'D' %}correct-option{% endif %}">
+                            <strong>D)</strong> {{ answer_data.question.option_d }}
+                            {% if answer_data.question.answer == 'D' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                            {% if answer_data.selected_answer == 'D' %}<i class="bi bi-x-circle-fill text-danger ms-2"></i>{% endif %}
+                        </div>
+                    </div>
+                    <div class="alert alert-danger mt-3">
+                        <strong><i class="bi bi-x-circle"></i> Your Answer:</strong> {{ answer_data.selected_answer if answer_data.selected_answer else 'Not answered' }}
+                    </div>
+                    <div class="alert alert-success mt-2">
+                        <strong><i class="bi bi-check-circle"></i> Correct Answer:</strong> {{ answer_data.question.answer }}
+                    </div>
+                    {% if answer_data.question.explanation %}
+                    <div class="alert alert-info mt-2">
+                        <strong><i class="bi bi-info-circle"></i> Explanation:</strong> {{ answer_data.question.explanation }}
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="alert alert-danger mt-3">
+                        <strong><i class="bi bi-x-circle"></i> Your Answer:</strong>
+                        <pre class="mb-0 mt-2">{{ answer_data.selected_answer if answer_data.selected_answer else 'Not answered' }}</pre>
+                    </div>
+                    <div class="alert alert-success mt-2">
+                        <strong><i class="bi bi-check-circle"></i> Model Answer:</strong>
+                        <pre class="mb-0 mt-2">{{ answer_data.question.answer }}</pre>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="alert alert-success text-center">
+                <i class="bi bi-trophy-fill"></i> Perfect! You got all answers correct!
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Correct Answers Tab -->
+        <div class="tab-pane fade" id="correct" role="tabpanel">
+            {% if correct_answers %}
+            {% for answer_data in correct_answers %}
+            <div class="card mb-3 border-success">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-check-circle-fill"></i> Correct Answer
+                        </span>
+                        <span>
+                            <span class="badge bg-light text-dark">{{ answer_data.question.question_type.upper() }}</span>
+                            <span class="badge bg-light text-dark">{{ answer_data.question.topic }}</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ answer_data.question.question }}</h5>
+                    
+                    {% if answer_data.question.question_type == 'mcq' %}
+                    <div class="options mt-3">
+                        <div class="option-item {% if answer_data.question.answer == 'A' %}correct-option{% endif %}">
+                            <strong>A)</strong> {{ answer_data.question.option_a }}
+                            {% if answer_data.question.answer == 'A' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                        </div>
+                        <div class="option-item {% if answer_data.question.answer == 'B' %}correct-option{% endif %}">
+                            <strong>B)</strong> {{ answer_data.question.option_b }}
+                            {% if answer_data.question.answer == 'B' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                        </div>
+                        <div class="option-item {% if answer_data.question.answer == 'C' %}correct-option{% endif %}">
+                            <strong>C)</strong> {{ answer_data.question.option_c }}
+                            {% if answer_data.question.answer == 'C' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                        </div>
+                        <div class="option-item {% if answer_data.question.answer == 'D' %}correct-option{% endif %}">
+                            <strong>D)</strong> {{ answer_data.question.option_d }}
+                            {% if answer_data.question.answer == 'D' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                        </div>
+                    </div>
+                    <div class="alert alert-success mt-3">
+                        <strong><i class="bi bi-check-circle"></i> Your Answer:</strong> {{ answer_data.selected_answer }}
+                    </div>
+                    {% if answer_data.question.explanation %}
+                    <div class="alert alert-info mt-2">
+                        <strong><i class="bi bi-info-circle"></i> Explanation:</strong> {{ answer_data.question.explanation }}
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="alert alert-warning text-center">
+                <i class="bi bi-exclamation-triangle"></i> No correct answers to display.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

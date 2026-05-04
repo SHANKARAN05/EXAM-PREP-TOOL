@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Study {{ subject }} - Placement Prep{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="bi bi-book-fill"></i> Study Mode: {{ subject }}
+        </h2>
+        <a href="{{ url_for('home.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Home
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('study.study_mode', subject=subject) }}" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Topic</label>
+                    <select name="topic" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Topics</option>
+                        {% for topic in topics %}
+                        <option value="{{ topic }}" {% if topic == current_topic %}selected{% endif %}>
+                            {{ topic }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Question Type</label>
+                    <select name="type" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Types</option>
+                        {% for qtype in question_types %}
+                        <option value="{{ qtype }}" {% if qtype == current_type %}selected{% endif %}>
+                            {{ qtype.upper() }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Search</label>
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Search questions..." value="{{ search_query }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Questions -->
+    {% if questions %}
+    <div class="questions-container">
+        {% for question in questions %}
+        <div class="card mb-3 question-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <span class="badge bg-secondary">{{ question.question_type.upper() }}</span>
+                    <span class="badge bg-info">{{ question.topic }}</span>
+                </span>
+                <button class="btn btn-sm btn-outline-success mark-reviewed" data-question-id="{{ question.id }}">
+                    <i class="bi bi-check-circle"></i> Mark as Reviewed
+                </button>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Q{{ loop.index }}. {{ question.question }}</h5>
+                
+                {% if question.question_type == 'mcq' %}
+                <div class="options mt-3">
+                    <div class="option-item {% if question.answer == 'A' %}correct-option{% endif %}">
+                        <strong>A)</strong> {{ question.option_a }}
+                        {% if question.answer == 'A' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                    </div>
+                    <div class="option-item {% if question.answer == 'B' %}correct-option{% endif %}">
+                        <strong>B)</strong> {{ question.option_b }}
+                        {% if question.answer == 'B' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                    </div>
+                    <div class="option-item {% if question.answer == 'C' %}correct-option{% endif %}">
+                        <strong>C)</strong> {{ question.option_c }}
+                        {% if question.answer == 'C' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                    </div>
+                    <div class="option-item {% if question.answer == 'D' %}correct-option{% endif %}">
+                        <strong>D)</strong> {{ question.option_d }}
+                        {% if question.answer == 'D' %}<i class="bi bi-check-circle-fill text-success ms-2"></i>{% endif %}
+                    </div>
+                </div>
+                <div class="alert alert-success mt-3">
+                    <strong><i class="bi bi-check-circle"></i> Correct Answer:</strong> {{ question.answer }}
+                </div>
+                {% if question.explanation %}
+                <div class="alert alert-info mt-2">
+                    <strong><i class="bi bi-info-circle"></i> Explanation:</strong> {{ question.explanation }}
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="alert alert-primary mt-3">
+                    <strong><i class="bi bi-lightbulb"></i> Answer:</strong>
+                    <pre class="mb-0 mt-2">{{ question.answer }}</pre>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if pagination.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('study.study_mode', subject=subject, page=pagination.prev_num, topic=current_topic, type=current_type, search=search_query) }}">
+                    Previous
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('study.study_mode', subject=subject, page=page_num, topic=current_topic, type=current_type, search=search_query) }}">
+                        {{ page_num }}
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('study.study_mode', subject=subject, page=pagination.next_num, topic=current_topic, type=current_type, search=search_query) }}">
+                    Next
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    {% else %}
+    <div class="alert alert-warning text-center">
+        <i class="bi bi-exclamation-triangle"></i> No questions found matching your filters.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Mark as reviewed functionality using localStorage
+document.querySelectorAll('.mark-reviewed').forEach(button => {
+    const questionId = button.dataset.questionId;
+    
+    // Check if already reviewed
+    if (localStorage.getItem('reviewed_' + questionId)) {
+        button.innerHTML = '<i class="bi bi-check-circle-fill"></i> Reviewed';
+        button.classList.remove('btn-outline-success');
+        button.classList.add('btn-success');
+    }
+    
+    button.addEventListener('click', function() {
+        localStorage.setItem('reviewed_' + questionId, 'true');
+        this.innerHTML = '<i class="bi bi-check-circle-fill"></i> Reviewed';
+        this.classList.remove('btn-outline-success');
+        this.classList.add('btn-success');
+        
+        // Show toast notification
+        showToast('Question marked as reviewed!');
+    });
+});
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
+</script>
+{% endblock %}
